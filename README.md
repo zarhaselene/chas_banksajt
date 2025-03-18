@@ -1,40 +1,182 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Skapa en Banksajt och publicera på aws
 
-## Getting Started
+I dagens uppgift ska vi öva på att skapa en react-sajt med backend i express och publicera den på en ec2 instans i aws med scp.
 
-First, run the development server:
+### Data i backend
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+I bankens backend finns tre arrayer: En array `users` för användare, en array `accounts` för bankkonton och en array `sessions` för engångslösenord`.
+
+**Users**
+Varje användare har ett id, ett användarnamn och ett lösenord.
+
+```
+[{id: 101, username: "Joe", password: "hemligt" }, ...]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Accounts**
+Varje bankkonto har ett id, ett användarid och ett saldo.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+```
+[{id: 1, userId: 101, amount: 200 }, ...]
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+**Sessions**
+När en användare loggar in skapas ett engångslösenord. Engångslösenordet och användarid läggs i sessions arrayen.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```
+[{userId: 101, token: "nwuefweufh" }, ...]
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Sidor på sajten
 
-## Learn More
+Banken har följande sidor på sin sajt:
 
-To learn more about Next.js, take a look at the following resources:
+**Landningssida**
+Ska innehålla navigering med länkar till Hem, logga in och skapa användare och en hero-section med knapp till skapa användare
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+**Skapa användare**
+Ett fält för användarnamn och ett för lösenord. Datat ska sparas i arrayen users i backend och ett bankkonto skapas i backend med 0 kr som saldo.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Logga in**
+Ett fält för användarnamn och ett för lösenord och en logga in knapp. När man klickat på knappen ska man få tillbaka sitt engångslösenord i response och skickas till kontosidan med useRouter.
 
-## Deploy on Vercel
+**Kontosida**
+Här kan man se sitt saldo och sätta in pengar på kontot. För att göra detta behöver man skicka med sitt engångslösenord till backend.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Hur du klarar uppgiften
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+1. Öppna en terminal och gå med `cd` där du vill skapa projektet.
+2. Skapa där en folder: bank och gå med `cd` in i foldern.
+
+### Skapa frontend
+
+1. Skriv `npx create-next-app frontend`.
+2. Gå in i projektet: `cd frontend`.
+
+### Skapa backend
+
+1. Backa en nivå med `cd ..`.
+1. Skapa en folder: backend och gå med `cd` in i foldern.
+1. Skriv `npm init` och tryck Enter på alla frågor.
+1. Lägg till `"type": "module"`i package.json
+1. I scripts i package.json lägg till: `"start": "nodemon server.js"`
+1. Installera dependencies: `npm i express cors body-parser`
+1. Börja skriva kod i `server.js`
+
+### Endpoints och arrayer
+
+1. I backend skapa tre tomma arrayer: `users`, `accounts` och `sessions`.
+2. Skapa endpoints för:
+
+- Skapa användare (POST): "/users"
+- Logga in (POST): "/sessions"
+- Visa salodo (POST): "/me/accounts"
+- Sätt in pengar (POST): "/me/accounts/transactions"
+
+3. När man loggar in ska ett engångslösenord skapas och skickas tillbaka i response.
+4. När man hämtar saldot ska samma engångslösenord skickas med i Post.
+
+### Startkod för server.js i backend
+
+```
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// Generera engångslösenord
+function generateOTP() {
+    // Generera en sexsiffrig numerisk OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    return otp.toString();
+}
+
+// Din kod här. Skriv dina arrayer
+
+
+// Din kod här. Skriv dina routes:
+
+// Starta servern
+app.listen(port, () => {
+    console.log(`Bankens backend körs på http://localhost:${port}`);
+});
+
+```
+
+### Exempel på fetch för POST i frontend
+
+```
+fetch('http://localhost:3001/users', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        username: 'Användarnamn',
+        password: 'Lösenord',
+    }),
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch((error) => {
+    console.error('Error:', error);
+});
+
+```
+
+## Publicera på aws
+
+1. Gå med cd upp en nivå så att du är i bank-mappen. Överför filerna med scp (radera node_modules först så går det snabbare) :
+
+```
+scp -i <din-nyckel>.pem -r ./ ubuntu@<din-ec2-instans>:/home/ubuntu/bank
+```
+
+2. logga in på din instans med ssh.
+
+3. Installera Node.js om det inte redan är installerat.
+
+4. Navigera till din backend-mapp och starta din server med node server.js.
+
+5. Navigera till din frontend-mapp. Kör följande:
+
+```
+npm install
+npm run build
+npm run start
+```
+
+## Hur du lämnar in
+
+1. Skapa ett repo på github.
+2. Ladda up dina filer till github:
+
+```
+git init
+git add .
+git commit -m "first commit"
+git branch -M main
+git remote add origin <Adressen till ditt repo>
+git push -u origin main
+```
+
+3. Klicka på uppgiften i canvas och ange länken till ditt repo.
+
+---
+
+### :boom: Success!
+
+Efter denna uppgift ska ni kunna skapa en fullstack sajt med api och publicera på aws.
+
+---
+
+### :runner: Extrauppgifter
+
+Klar? Här är lite mer att göra:
+
+1. Installera pm2 på backend och se till att frontend och backend körs även när terminalen stängs.
