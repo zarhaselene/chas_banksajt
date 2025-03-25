@@ -47,32 +47,25 @@ export default function HomePage() {
 
   // Fetch account details
   const fetchAccountDetails = async (token) => {
-    setAccountLoading(true);
     try {
       const response = await fetch("http://localhost:3001/me/accounts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          token: token,
-        }),
+        body: JSON.stringify({ token }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch account details");
+      if (response.ok) {
+        setBalance(data.amount ?? "N/A");
+      } else {
+        setAccountError(data.error || "Failed to fetch account details");
       }
-
-      setBalance(data.balance);
-      setAccountError("");
-    } catch (error) {
-      setAccountError(
-        error.message || "An error occurred while fetching your account details"
-      );
-    } finally {
-      setAccountLoading(false);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setAccountError("Network error occurred");
     }
   };
 
@@ -166,25 +159,12 @@ export default function HomePage() {
   // Deposit
   const handleDeposit = async (e) => {
     e.preventDefault();
-    setAccountError("");
-    setSuccess("");
     setAccountLoading(true);
+    setAccountError("");
 
-    const amountNum = parseFloat(amount);
-
-    if (isNaN(amountNum) || amountNum <= 0) {
-      setAccountError("Please enter a valid amount");
-      setAccountLoading(false);
-      return;
-    }
+    const token = localStorage.getItem("token");
 
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("You are not logged in");
-      }
-
       const response = await fetch(
         "http://localhost:3001/me/accounts/transactions",
         {
@@ -192,28 +172,21 @@ export default function HomePage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            token: token,
-            amount: amountNum,
-          }),
+          body: JSON.stringify({ token, amount: parseFloat(amount) }), // Ensure amount is a number
         }
       );
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to process deposit");
+      if (response.ok) {
+        setSuccess("Deposit successful!");
+        fetchAccountDetails(token); // Refresh balance
+        setAmount("");
+      } else {
+        setAccountError(data.error || "Failed to deposit money");
       }
-
-      setSuccess(`Successfully deposited ${amountNum} kr`);
-      setAmount("");
-
-      // Refresh to show updated balance
-      fetchAccountDetails(token);
-    } catch (error) {
-      setAccountError(
-        error.message || "An error occurred while processing your deposit"
-      );
+    } catch (err) {
+      setAccountError("Network error");
     } finally {
       setAccountLoading(false);
     }
