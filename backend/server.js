@@ -12,10 +12,10 @@ app.use(bodyParser.json());
 
 async function startServer() {
   const db = await mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "root",
-    database: "bank",
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     port: 3306,
   });
   app.locals.db = db;
@@ -24,10 +24,12 @@ async function startServer() {
 
 await startServer();
 
+await startServer();
+
 // Create user
 app.post("/users", async (req, res) => {
   const { username, password } = req.body;
-  const db = req.app.locals.db; 
+  const db = req.app.locals.db;
 
   try {
     const [userResult] = await db.execute(
@@ -98,7 +100,7 @@ app.post("/me/accounts", async (req, res) => {
       return res.status(404).json({ error: "Konto hittades inte" });
     }
 
-    res.json({ amount: accounts[0].amount }); 
+    res.json({ amount: accounts[0].amount });
   } catch (err) {
     console.error("Database error:", err);
     res.status(500).json({ error: "Kunde inte hämta saldo" });
@@ -138,5 +140,5 @@ app.post("/me/accounts/transactions", async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Bank backend is running at http://localhost:${port}`);
+  console.log(`Bank backend is running at http://13.61.185.174:${port}`);
 });
