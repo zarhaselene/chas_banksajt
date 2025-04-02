@@ -48,7 +48,7 @@ export default function HomePage() {
   // Fetch account details
   const fetchAccountDetails = async (token) => {
     try {
-      const response = await fetch("http://localhost:3001/me/accounts", {
+      const response = await fetch("http://13.61.185.174:3001/me/accounts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,7 @@ export default function HomePage() {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/sessions", {
+      const response = await fetch("http://13.61.185.174:3001/sessions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +127,7 @@ export default function HomePage() {
     setRegisterError("");
 
     try {
-      const response = await fetch("http://localhost:3001/users", {
+      const response = await fetch("http://13.61.185.174:3001/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -166,7 +166,7 @@ export default function HomePage() {
 
     try {
       const response = await fetch(
-        "http://localhost:3001/me/accounts/transactions",
+        "http://13.61.185.174:3001/me/accounts/transactions",
         {
           method: "POST",
           headers: {
