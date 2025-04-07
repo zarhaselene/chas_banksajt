@@ -1,36 +1,37 @@
-name: Run tests and deploy to AWS
+name: Deploy to EC2
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Copy project to EC2
+        uses: appleboy/scp-action@master
         with:
-          node-version: 18
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          source: "."
+          target: "/home/ubuntu/chas-banksajt"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build project
-        run: npm run build
-
-      - name: Deploy to AWS EC2
-        uses: easingthemes/ssh-deploy@main
+      - name: SSH and run docker-compose on EC2
+        uses: appleboy/ssh-action@master
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.EC2_PUBLIC_IP }}
-          REMOTE_USER: ubuntu
-          REMOTE_PATH: /var/www/chasbank
-          SOURCE: .
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /home/ubuntu/chas-banksajt
+            sudo docker-compose down
+            sudo docker system prune -af  # Rensa gamla images/containers
+            sudo docker-compose up --build -d
