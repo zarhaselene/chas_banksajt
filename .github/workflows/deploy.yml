@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           source: "."
-          target: "/home/ubuntu/chas_banksajt"
+          target: "/home/ubuntu/chas-banksajt-cicd"
 
       - name: SSH and run docker-compose on EC2
         uses: appleboy/ssh-action@master
