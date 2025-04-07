@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           source: "."
-          target: "/home/ubuntu/chas_banksajt"
+          target: "/home/ubuntu/chas-banksajt-cicd"
 
       - name: SSH and run docker-compose on EC2
         uses: appleboy/ssh-action@master
@@ -31,7 +31,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /home/ubuntu/chas-banksajt
+            cd /home/ubuntu/chas-banksajt-cicd
             sudo docker-compose down
             sudo docker system prune -af  # Rensa gamla images/containers
             sudo docker-compose up --build -d
